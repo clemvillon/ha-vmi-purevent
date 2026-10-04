@@ -1,0 +1,22 @@
+{
+  "config": {
+    "flow_title": "{name}",
+    "step": {
+      "user": {
+        "title": "Add a VMI unit",
+        "description": "Select the unit detected over Bluetooth.",
+        "data": {
+          "address": "Unit"
+        }
+      },
+      "confirm": {
+        "title": "Add the VMI unit?",
+        "description": "A Ventilairsec VMI unit was detected over Bluetooth."
+      }
+    },
+    "abort": {
+      "already_configured": "This unit is already configured.",
+      "no_devices_found": "No VMI unit detected over Bluetooth. It accepts a single connection: close the VMI+ app if it is open."
+    }
+  }
+}

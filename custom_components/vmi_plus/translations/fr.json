@@ -1,0 +1,22 @@
+{
+  "config": {
+    "flow_title": "{name}",
+    "step": {
+      "user": {
+        "title": "Ajouter une VMI",
+        "description": "Choisir la VMI détectée en Bluetooth.",
+        "data": {
+          "address": "VMI"
+        }
+      },
+      "confirm": {
+        "title": "Ajouter la VMI ?",
+        "description": "Une VMI Ventilairsec a été détectée en Bluetooth."
+      }
+    },
+    "abort": {
+      "already_configured": "Cette VMI est déjà configurée.",
+      "no_devices_found": "Aucune VMI détectée en Bluetooth. Elle n'accepte qu'une connexion : fermer l'app VMI+ si elle est ouverte."
+    }
+  }
+}
