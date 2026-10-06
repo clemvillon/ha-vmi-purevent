@@ -21,6 +21,9 @@ CONNEXION_S = 30  # durée maximale d'une tentative de connexion
 # « Connectée » : une trame d'état valide reçue depuis moins de FRAICHEUR_S,
 # soit trois relevés manqués. Au-delà, la liaison est tenue pour perdue.
 FRAICHEUR_S = 35
+# Fermeture d'une liaison : durée maximale. Une liaison morte (relais
+# débranché) peut ne jamais répondre ; au-delà, elle est abandonnée.
+FERMETURE_S = 10
 # Après une commande que la trame de réponse ne confirme pas, délai avant
 # l'unique relecture de contrôle.
 RELECTURE_S = 0.5
@@ -37,3 +40,10 @@ VITESSES = ("Faible", "Moyenne", "Forte")
 # Interrupteur « Vacances » : durée posée par un simple « allumer ».
 # Pour une autre durée : le réglage « Vacances (jours) ».
 VACANCES_JOURS_PAR_DEFAUT = 1
+
+# Horloge de la VMI : mise à l'heure à chaque connexion (comme VMI+), puis à
+# chaque changement de décalage horaire (heure d'été, d'hiver). Ce sont les
+# deux cas où elle peut être fausse : la VMI a pu perdre le courant, ou
+# l'heure légale a changé. Sans accusé de la VMI, HORLOGE_ESSAIS_MAX
+# tentatives, puis on attend la prochaine occasion.
+HORLOGE_ESSAIS_MAX = 3

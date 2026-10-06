@@ -28,7 +28,8 @@ Non officiel : sans lien avec Ventilairsec. Vérifié sur une seule machine
 - L'état affiché vient toujours d'une trame reçue. Une commande n'est tenue
   pour faite que si la VMI la confirme ; sinon, une erreur.
 - Les trames dont la somme de contrôle est fausse sont refusées ; une mesure
-  isolée aberrante est écartée.
+  isolée aberrante est écartée. Le diagnostic de l'entrée compte les trames
+  refusées et garde la dernière, avec son heure et le motif du refus.
 
 | Entité | Type | Rôle |
 |---|---|---|
@@ -42,7 +43,15 @@ Non officiel : sans lien avec Ventilairsec. Vérifié sur une seule machine
 | Températures (sonde n°1, entrée d'air), humidité | capteurs | sondes du caisson |
 | Filtre, jours restants ; Débit théorique | capteurs | |
 | Jours de fonctionnement, Volume, Trame d'état | diagnostic | la trame brute sert à surveiller ce qui n'est pas décodé |
-| Préchauffage (marche) | interrupteur | **désactivé d'origine** |
+| Vacances (jours) | réglage | 0 à 15 ; 0 = pas de vacances ; le décompte est fait par la VMI |
+| Limite d'été | réglage | 22 à 37 °C |
+| Débit fixe | interrupteur | réglage d'installation |
+| Arrêter le préchauffage | bouton | marche à 0 et consigne à 0 ; ne peut que baisser la puissance |
+| Préchauffage (marche), Préchauffage (consigne) | interrupteur, réglage | **désactivés d'origine** ; la consigne (12 à 18 °C) met le préchauffage en marche |
+
+L'horloge de la VMI est mise à l'heure locale à chaque connexion (comme le
+fait VMI+), puis à chaque changement d'heure (été, hiver). C'est la seule
+écriture faite sans commande.
 
 ## Installation (HACS)
 

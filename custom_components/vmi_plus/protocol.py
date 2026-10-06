@@ -19,8 +19,14 @@ Forme d'une trame, dans les deux sens :
 
     A5 B6 | type | 06 | longueur n | n octets | somme
 
-La somme est le XOR de tous les octets depuis le type jusqu'au dernier octet
-utile. Les notifications font 182 octets : au-delà de la somme, des zéros.
+La somme est un XOR qui part du type. Dans une trame envoyée à la VMI, elle
+va jusqu'au dernier des n octets. Dans une trame reçue, elle s'arrête un octet
+plus tôt : le dernier des n octets n'y entre pas. Cette règle tient pour les
+82 notifications de la capture (neuf types). Ce dernier octet y est presque
+toujours nul, ce qui cachait la règle : elle a été trouvée après coup, sur des
+trames d'état où il ne l'était pas (05-06/10/2026) et que la règle « jusqu'au
+dernier octet » refusait à tort.
+Les notifications font 182 octets : au-delà de la somme, des zéros.
 """
 
 from __future__ import annotations
@@ -80,7 +86,10 @@ ETAT_VACANCES = 43  # jours restants
 ETAT_BOOST = 44
 ETAT_DEBIT_FIXE = 45
 ETAT_RENOUVELLEMENT = 47  # 2 octets : volumes par heure x 1000
-ETAT_SURVENTILATION_BIS = 52  # 1 = active (double de l'octet 33)
+# Non décodé, non utilisé. Dans la capture il suit la surventilation (1 =
+# active) ; le 04/10/2026 au soir il est resté à 0, surventilation active :
+# ce n'est pas un double de l'octet 33.
+ETAT_OCTET_52 = 52
 ETAT_PRECHAUFFAGE_MARCHE = 53
 
 SURVENTILATION_ACTIVE = 0x00
@@ -111,7 +120,9 @@ PRECHAUFFAGE_CONSIGNE_MIN_C = 12
 PRECHAUFFAGE_CONSIGNE_MAX_C = 18
 LIMITE_ETE_MIN_C = 22
 LIMITE_ETE_MAX_C = 37
-VACANCES_MAX_JOURS = 255  # un octet
+# Plafond choisi : l'octet en porterait 255, seuls quelques jours ont été
+# essayés. Des vacances plus longues réglées dans VMI+ restent lues telles quelles.
+VACANCES_MAX_JOURS = 15
 
 
 def somme(donnees: bytes) -> int:
@@ -123,7 +134,7 @@ def somme(donnees: bytes) -> int:
 
 
 def _fermer(corps: bytes) -> bytes:
-    """Ajoute l'en-tête devant et la somme derrière."""
+    """Trame à envoyer : l'en-tête devant, la somme de tout le corps derrière."""
     return ENTETE + corps + bytes([somme(corps)])
 
 
@@ -154,17 +165,39 @@ def trame_horloge(maintenant: datetime) -> bytes:
     )
 
 
-def type_de_trame(donnees: bytes) -> int | None:
-    """Type d'une trame reçue, ou None si elle n'est pas valide.
+# Motifs de refus d'une trame reçue (journal et diagnostic).
+REFUS_EN_TETE = "en-tête absent ou trame de moins de 6 octets"
+REFUS_TRONQUEE = "plus courte que la longueur annoncée"
+REFUS_SOMME = "somme fausse"
+REFUS_TROP_COURTE = "trop courte pour son type"
+
+
+def somme_recue(donnees: bytes) -> int:
+    """Somme attendue d'une trame reçue : XOR du type à l'avant-dernier des
+    octets annoncés (le dernier n'y entre pas). À n'appeler que si la longueur
+    annoncée est présente."""
+    fin = POS_DONNEES + donnees[POS_LONGUEUR]
+    return somme(donnees[POS_TYPE : fin - 1])
+
+
+def defaut_de_trame(donnees: bytes) -> str | None:
+    """Pourquoi une trame reçue n'est pas valide ; None si elle l'est.
 
     Valide : en-tête, longueur annoncée présente, somme juste.
     """
     if len(donnees) <= POS_DONNEES or donnees[:2] != ENTETE:
-        return None
+        return REFUS_EN_TETE
     fin = POS_DONNEES + donnees[POS_LONGUEUR]
     if len(donnees) <= fin:
-        return None
-    if somme(donnees[POS_TYPE:fin]) != donnees[fin]:
+        return REFUS_TRONQUEE
+    if somme_recue(donnees) != donnees[fin]:
+        return REFUS_SOMME
+    return None
+
+
+def type_de_trame(donnees: bytes) -> int | None:
+    """Type d'une trame reçue, ou None si elle n'est pas valide."""
+    if defaut_de_trame(donnees) is not None:
         return None
     return donnees[POS_TYPE]
 

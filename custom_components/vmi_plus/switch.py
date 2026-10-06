@@ -1,4 +1,5 @@
-"""Interrupteurs : Boost, vacances, surventilation, préchauffage, connexion."""
+"""Interrupteurs : Boost, vacances, surventilation, débit fixe, préchauffage,
+connexion."""
 
 from __future__ import annotations
 
@@ -56,6 +57,15 @@ INTERRUPTEURS: tuple[DescriptionInterrupteur, ...] = (
         registre=protocol.REG_VACANCES,
         valeur_marche=VACANCES_JOURS_PAR_DEFAUT,
         allume=lambda etat: etat.vacances_jours > 0,
+    ),
+    DescriptionInterrupteur(
+        # Réglage d'installation (« risque radon avéré » dans VMI+).
+        key="fixed_airflow",
+        name="Débit fixe",
+        icon="mdi:fan-lock",
+        entity_category=EntityCategory.CONFIG,
+        registre=protocol.REG_DEBIT_FIXE,
+        allume=lambda etat: etat.debit_fixe,
     ),
 )
 
